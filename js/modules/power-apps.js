@@ -231,4 +231,21 @@ export class PowerApps {
 
     return res;
   }
+
+  /**
+   *
+   * @returns {Blob}
+   */
+  async createBlobAsync() {
+    const msapp = this._msapp;
+    if (!msapp) throw Error("This is not loaded.");
+
+    const compBlob = await this._zip.generateAsync({
+      type: "blob",
+      compression: "DEFLATE",
+      compressionOptions: { level: 9 },
+    });
+
+    return compBlob;
+  }
 }

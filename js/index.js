@@ -118,8 +118,37 @@ class DataSourceTable {
   }
 }
 
+class DownloadButton {
+  constructor() {
+    this._elm = document.getElementById("download-button");
+
+    this._elm.addEventListener("click", async (e) => {
+      /** @type {PowerApps} */
+      const powerApps = window.powerApps;
+
+      // Blob オブジェクトを作成
+      const data = await powerApps.createBlobAsync();
+
+      // Blob URL を生成
+      const url = window.URL.createObjectURL(data);
+
+      // a エレメントを動的に作成
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "horizontally.zip"; // ダウンロードするファイルの名前
+
+      // リンクをクリックする
+      link.click();
+
+      // リソースを解放
+      window.URL.revokeObjectURL(url);
+    });
+  }
+}
+
 window.selectElm = new SelectElement();
 window.tableElm = new DataSourceTable();
+window.downloadButton = new DownloadButton();
 window.powerApps = new PowerApps();
 
 function main() {
