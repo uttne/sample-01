@@ -85,10 +85,14 @@ export class PowerApps {
     this._zip = null;
     /** @type {JSZip|null} */
     this._msapp = null;
+    /** @type {string|null} */
+    this._msappKey = null;
     /** @type {File} */
     this._file = null;
     /** @type {Manifest} */
     this.manifest = null;
+    /** @type {string|null} */
+    this._manifestKey = null;
   }
 
   /**
@@ -132,6 +136,7 @@ export class PowerApps {
     const msapp = new JSZip();
 
     try {
+      /** @type {Blob} */
       const blob = await zip.files[msappKey].async("blob");
       await msapp.loadAsync(blob);
     } catch (e) {
@@ -142,7 +147,9 @@ export class PowerApps {
     this._file = file;
     this._zip = zip;
     this._msapp = msapp;
+    this._msappKey = msappKey;
     this.manifest = manifest;
+    this._manifestKey = manifestKey;
   }
 
   /**
@@ -240,6 +247,15 @@ export class PowerApps {
     const msapp = this._msapp;
     if (!msapp) throw Error("This is not loaded.");
 
+    const compMsappBase64 = await this._msapp.generateAsync({
+      type: "base64",
+      compression: "DEFLATE",
+      compressionOptions: { level: 9 },
+    });
+
+    // msapp を更新
+    this._zip.file(this._msappKey, compMsappBase64, { base64: true });
+
     const compBlob = await this._zip.generateAsync({
       type: "blob",
       compression: "DEFLATE",
@@ -247,5 +263,79 @@ export class PowerApps {
     });
 
     return compBlob;
+  }
+
+  /**
+   *
+   * @returns {string}
+   */
+  async getNameAsync() {
+    const msapp = this._msapp;
+    if (!msapp) throw Error("This is not loaded.");
+
+    const propertiesKey = "Properties.json";
+
+    const contentJson = await this._msapp.files[propertiesKey].async("string");
+
+    const content = JSON.parse(contentJson);
+
+    return content.Name;
+  }
+
+  /**
+   *
+   * @param {string} value
+   */
+  async setNameAsync(value) {
+    const msapp = this._msapp;
+    if (!msapp) throw Error("This is not loaded.");
+
+    {
+      const contentJson = await this._zip.files[this._manifestKey].async(
+        "string"
+      );
+      const content = JSON.parse(contentJson);
+      const appsId = Object.keys(content.resources).filter(
+        (key) => content.resources[key].type === "Microsoft.PowerApps/apps"
+      )[0];
+      content.resources[appsId].details.displayName = value;
+
+      this._zip.file(this._manifestKey, JSON.stringify(content));
+    }
+    {
+      const pathItems = this._msappKey.split("/").slice(0, -1);
+      const key = [...pathItems, ...pathItems.slice(-1)].join("/") + ".json";
+
+      const contentJson = await this._zip.files[key].async("string");
+      const content = JSON.parse(contentJson);
+
+      content.appDefinitionTemplate.properties.displayName = value;
+
+      this._zip.file(key, JSON.stringify(content));
+    }
+
+    {
+      const key = "Properties.json";
+
+      const contentJson = await this._msapp.files[key].async("string");
+
+      const content = JSON.parse(contentJson);
+
+      content.Name = value;
+
+      this._msapp.file(key, JSON.stringify(content));
+    }
+
+    {
+      const key = "Resources\\PublishInfo.json";
+
+      const contentJson = await this._msapp.files[key].async("string");
+
+      const content = JSON.parse(contentJson);
+
+      content.AppName = value;
+
+      this._msapp.file(key, JSON.stringify(content));
+    }
   }
 }

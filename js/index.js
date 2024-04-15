@@ -126,6 +126,11 @@ class DownloadButton {
       /** @type {PowerApps} */
       const powerApps = window.powerApps;
 
+      // サンプル: 名称の変更
+      const name = await powerApps.getNameAsync();
+      console.log(`app name : ${name}`);
+      await powerApps.setNameAsync(name + "_編集版");
+
       // Blob オブジェクトを作成
       const data = await powerApps.createBlobAsync();
 
