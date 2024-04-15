@@ -1,5 +1,6 @@
 import "./@types/jszip.t.js";
 import { PowerApps } from "./modules/power-apps.js";
+import { SpoClient } from "./modules/spo.js";
 
 class SelectElement {
   constructor() {
@@ -151,10 +152,47 @@ class DownloadButton {
   }
 }
 
+class SpoElements {
+  constructor() {
+    /** @type {HTMLButtonElement} */
+    this._buttonElm = document.getElementById("new-table-button");
+    /** @type {HTMLInputElement} */
+    this._siteUrlElm = document.getElementById("site-url-input");
+    /** @type {HTMLInputElement} */
+    this._tableTitleElm = document.getElementById("new-table-title-input");
+
+    this._buttonElm.addEventListener("click", async (e) => {
+      const siteUrl = this._siteUrlElm.value;
+      const tableTitle = this._tableTitleElm.value;
+
+      if (!siteUrl) {
+        alert("サイトのURLを入力してください");
+        return;
+      }
+
+      if (!tableTitle) {
+        alert("作成するテーブルのタイトルを入力してください");
+        return;
+      }
+
+      const spoClient = new SpoClient(siteUrl);
+
+      try {
+        spoClient.createListAsync(tableTitle, "");
+        alert(`${tableTitle} を作成しました`);
+      } catch (e) {
+        console.log(e);
+        alert(`${tableTitle} の作成に失敗しました : ${e.toString()}`);
+      }
+    });
+  }
+}
+
 window.selectElm = new SelectElement();
 window.tableElm = new DataSourceTable();
 window.downloadButton = new DownloadButton();
 window.powerApps = new PowerApps();
+window.spoElms = new SpoElements();
 
 function main() {
   const zipInput = document.getElementById("zipInput");
