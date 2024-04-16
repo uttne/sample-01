@@ -1,5 +1,6 @@
 import "./@types/jszip.t.js";
 import { PowerApps } from "./modules/power-apps.js";
+import { Settings } from "./modules/settings.js";
 import { SpoClient } from "./modules/spo.js";
 
 class SelectElement {
@@ -193,8 +194,13 @@ window.tableElm = new DataSourceTable();
 window.downloadButton = new DownloadButton();
 window.powerApps = new PowerApps();
 window.spoElms = new SpoElements();
+window.settings = new Settings();
 
 function main() {
+  /** @type {Settings} */
+  const settings = window.settings;
+  settings.loadAsync().then((s) => console.log(s));
+
   const zipInput = document.getElementById("zipInput");
   zipInput.addEventListener("change", (e) => {
     /** @type {File} */
@@ -208,6 +214,8 @@ function main() {
       /** @type {DataSourceTable} */
       const tableElm = window.tableElm;
       tableElm.clear();
+
+      const settingData = settings.data;
 
       const spoListDataSources = await powerApps.getSPOListDataSourcesAsync();
       const flowDataSources = await powerApps.getFlowDataSourcesAsync();
@@ -227,7 +235,7 @@ function main() {
           "Power Automate",
           ds.Name,
           // FlowNameId を使ってURLを構築
-          `${ds.FlowNameId}`
+          `https://make.powerautomate.com/environments/Default-${settingData.tenantId}/flows/${ds.FlowNameId}/details`
         );
       });
 
