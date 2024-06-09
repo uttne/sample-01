@@ -22,7 +22,8 @@ const EntityTypeNames = Object.freeze({
   IWConvertedForms: "IWConvertedForms",
 });
 
-const FieldTypeKinds = Object.freeze({
+/** フィールドの型一覧 */
+export const FieldTypeKinds = Object.freeze({
   Text: 2, // テキストフィールド
   Memo: 3, // メモフィールド（複数行テキスト）
   Number: 4, // 数値フィールド
@@ -50,7 +51,7 @@ const FieldTypeKinds = Object.freeze({
  */
 
 /**
- * @typedef {Object} ListObject
+ * @typedef {Object} ListObject リストのオブジェクト
  * @property {number} BaseTemplate
  * @property {number} BaseType
  * @property {string} Created
@@ -69,7 +70,7 @@ const FieldTypeKinds = Object.freeze({
  */
 
 /**
- * @typedef {Object} ListFieldObject
+ * @typedef {Object} ListFieldObject リストのフィールドのオブジェクト
  * @property {boolean} AutoIndexed
  * @property {boolean} CanBeDeleted
  * @property {string} Description
@@ -90,7 +91,7 @@ const FieldTypeKinds = Object.freeze({
  */
 
 /**
- * @typedef {Object} ListViewObject
+ * @typedef {Object} ListViewObject リストのビューのオブジェクト
  * @property {string} Id
  * @property {string} Title
  * @property {RefField} ViewFields
@@ -111,10 +112,12 @@ export class ExistedError extends Error {
   }
 }
 
+/** SharePoint のリストを操作するためのクラス
+ */
 export class SpoClient {
   /**
    *
-   * @param {string} siteUrl
+   * @param {string} siteUrl サイトのURL
    */
   constructor(siteUrl) {
     this._siteUrl = siteUrl.replace(/\/+$/g, "");
@@ -125,6 +128,7 @@ export class SpoClient {
   }
 
   /**
+   * 視覚情報の取得
    * @param {boolean} force
    * @returns {string}
    */
